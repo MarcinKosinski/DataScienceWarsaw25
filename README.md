@@ -1,1 +1,9 @@
-# DataScienceWarsaw25
+# [DataScienceWarsaw25](https://www.meetup.com/Data-Science-Warsaw/events/238737897/)
+
+1. sparklyr: R interface to Apache Spark machine learning algorithms with dplyr back-end (Marcin Kosinski)
+
+sparklyr: R interface to Apache Spark, a fast and general engine for big data processing (http://spark.apache.org). This package supports connecting to local and remote Apache Spark clusters, provides a 'dplyr' compatible back-end, and provides an interface to Spark's built-in machine learning algorithms.
+
+During my talk I will present how R integrates with Spark with the R sparkapi package, on which the sparklyr package is based. I'll breifly explain dplyr data analysis methodology that is widely used in sparklyr. Moreover I'll summary the machine learning functionalities presented in Spark that are available via R sparklyr interface. If there will be time, in the end I'll describe sparklyr use case applied to the articles that I web scraped from polish news portals.
+
+About the Speaker: Marcin Kosinski, R Data Scientist http://r-addict.comMarcin has a master degree in Mathematical Statistics and Data Analysis specialty and for the last 30 months he was working in the Research and Development Department at the biggest polish news web portal, wp.pl(Virtual Poland Group). Challenges seeker and big R package enthusiast. Currently keen on the field of large-scale online learning and various approaches to personalized news article recommendation. Co-organizer of the +1300 members R Enthusiasts meetups in Warsaw and main organizer of the Polish R Users Conference 2017 called 'Why R? 2017' (whyr.pl). Interested in R packages development and survival analysis models. He worked as a subject matter expert at +3000 members Data Crunchers Online R Course at The Warsaw School of Data Analysis. In January 2017, Marcin has started his own R+stats freelancing company.
