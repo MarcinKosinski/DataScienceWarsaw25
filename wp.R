@@ -2,6 +2,7 @@ library(dplyr)
 library(magrittr)
 library(rvest)
 library(stringi)
+library(pbapply)
 
 ### WIADOMOŚCI ###
 adress <- c("http://wiadomosci.wp.pl/")
@@ -9,7 +10,7 @@ adresses <- c("polska", "swiat", "spoleczenstwo", "przestepczosc", "polityka",
               "ciekawostki", "nauka", "tylko-w-wp", "dzieje-sie-na-zywo") %>%
   paste0(adress, .)
 
-links <- lapply(adresses, function(one_ad) {
+links <- pblapply(adresses, function(one_ad) {
   ad_html <- read_html(one_ad)
   ad_nodes <- html_nodes(ad_html, css = "div")
   
@@ -38,7 +39,7 @@ links <- lapply(adresses, function(one_ad) {
   unlist() %>%
   unique()
 
-bodies <- lapply(links, function(link) {
+bodies <- pblapply(links, function(link) {
   link %>%
     read_html() %>%
     html_nodes(css = "p , ._1HGmjUl , ._1xAmRvR") %>%
