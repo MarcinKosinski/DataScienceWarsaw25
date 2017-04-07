@@ -6,8 +6,8 @@ library(RSQLite)
 library(rvest)
 library(stringi)
 
-### KUCHNIA ###
-adress <- "http://kuchnia.wp.pl/"
+### TELESHOW ###
+adress <- "http://teleshow.wp.pl/"
 adresses <- adress %>%
   read_html() %>%
   html_nodes(css = "._1lXcfrU") %>%
@@ -23,12 +23,12 @@ links <- pblapply(adresses, function(one_ad) {
   ad_nodes <- html_nodes(ad_html, css = "script")
   
   ad_text <- ad_nodes %>%
-    grep("kuchnia.wp.pl", .) %>%
+    grep("teleshow.wp.pl", .) %>%
     ad_nodes[.] %>%
     as.character()
   
   biggest_list <- ad_text %>%
-    stri_count_regex("kuchnia.wp.pl") %>%
+    stri_count_regex("teleshow.wp.pl") %>%
     which.max()
   
   big_links <- biggest_list %>%
@@ -51,7 +51,7 @@ links <- links %>%
   grep("a$", ., value = TRUE)
 
 db <- dbConnect(drv = SQLite(), dbname = "../data/wp.db")
-db_links <- dbGetQuery(db, "SELECT links FROM wp_kuchnia")
+db_links <- dbGetQuery(db, "SELECT links FROM wp_teleshow")
 links <- setdiff(links, db_links$links)
 
 bodies <- pblapply(links, function(link) {
@@ -67,18 +67,18 @@ bodies <- pblapply(links, function(link) {
   unlist() %>%
   gsub("'", "''", .)
 
-wp_kuchnia <- data_frame(links = links, bodies = bodies) %>%
+wp_teleshow <- data_frame(links = links, bodies = bodies) %>%
   filter(bodies != "Hmm... Nie ma takiej strony.")
 
 db_next <- "', '"
 
-for (i in 1:nrow(wp_kuchnia)) {
+for (i in 1:nrow(wp_teleshow)) {
   dbGetQuery(db,
-             paste0("INSERT INTO wp_kuchnia (links, bodies) VALUES ('",
-                    wp_kuchnia$links[i], db_next,
-                    wp_kuchnia$bodies[i], "')"))
+             paste0("INSERT INTO wp_teleshow (links, bodies) VALUES ('",
+                    wp_teleshow$links[i], db_next,
+                    wp_teleshow$bodies[i], "')"))
 }
 
 dbDisconnect(db)
 
-write_csv(wp_kuchnia, "../data/wp_kuchnia.csv", append = TRUE)
+write_csv(wp_teleshow, "../data/wp_teleshow.csv", append = TRUE)
