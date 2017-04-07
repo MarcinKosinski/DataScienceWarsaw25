@@ -8,7 +8,7 @@ library(stringi)
 
 db <- dbConnect(drv = SQLite(), dbname = "../data/wp.db")
 
-tab_name <- "wp_film"
+tab_name <- "wp_kuchnia"
 template <- paste0("../data/", tab_name, ".csv") %>%
   read_csv()
 

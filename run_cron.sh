@@ -7,4 +7,6 @@ bash -c "cd /home/krzysztof/GitHub/DataScienceWarsaw25/R && \
 /usr/bin/Rscript /home/krzysztof/GitHub/DataScienceWarsaw25/R/wp_tech.R && \
 /usr/bin/Rscript /home/krzysztof/GitHub/DataScienceWarsaw25/R/wp_opinie.R && \
 /usr/bin/Rscript /home/krzysztof/GitHub/DataScienceWarsaw25/R/wp_turystyka.R && \
-/usr/bin/Rscript /home/krzysztof/GitHub/DataScienceWarsaw25/R/wp_dom.R"
+/usr/bin/Rscript /home/krzysztof/GitHub/DataScienceWarsaw25/R/wp_dom.R && \
+/usr/bin/Rscript /home/krzysztof/GitHub/DataScienceWarsaw25/R/wp_film.R && \
+/usr/bin/Rscript /home/krzysztof/GitHub/DataScienceWarsaw25/R/wp_kuchnia.R"
