@@ -1,8 +1,10 @@
 library(dplyr)
 library(magrittr)
+library(pbapply)
+library(readr)
+library(RSQLite)
 library(rvest)
 library(stringi)
-library(pbapply)
 
 ### WIADOMOŚCI ###
 adress <- c("http://wiadomosci.wp.pl/")
@@ -39,6 +41,10 @@ links <- pblapply(adresses, function(one_ad) {
   unlist() %>%
   unique()
 
+db <- dbConnect(drv = SQLite(), dbname = "data/wp.db")
+db_links <- dbGetQuery(db, "SELECT links FROM wp_wiadomosci")
+links <- setdiff(links, db_links$links)
+
 bodies <- pblapply(links, function(link) {
   link %>%
     read_html() %>%
@@ -46,6 +52,20 @@ bodies <- pblapply(links, function(link) {
     html_text() %>%
     paste0(collapse = " ")
 }) %>%
-  unlist()
+  unlist() %>%
+  gsub("'", "''", .)
 
-df_to_DB <- data_frame(links = links, bodies = bodies)
+wp_wiadomosci <- data_frame(links = links, bodies = bodies)
+
+db_next <- "', '"
+
+for (i in 1:nrow(wp_wiadomosci)) {
+  dbGetQuery(db,
+             paste0("INSERT INTO wp_wiadomosci (links, bodies) VALUES ('",
+                    wp_wiadomosci$links[i], db_next,
+                    wp_wiadomosci$bodies[i], "')"))
+}
+
+dbDisconnect(db)
+
+write_csv(wp_wiadomosci, "data/wp_wiadomosci.csv", append = TRUE)
