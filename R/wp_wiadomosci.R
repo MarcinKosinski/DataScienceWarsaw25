@@ -41,7 +41,7 @@ links <- pblapply(adresses, function(one_ad) {
   unlist() %>%
   unique()
 
-db <- dbConnect(drv = SQLite(), dbname = "data/wp.db")
+db <- dbConnect(drv = SQLite(), dbname = "../data/wp.db")
 db_links <- dbGetQuery(db, "SELECT links FROM wp_wiadomosci")
 links <- setdiff(links, db_links$links)
 
@@ -68,4 +68,4 @@ for (i in 1:nrow(wp_wiadomosci)) {
 
 dbDisconnect(db)
 
-write_csv(wp_wiadomosci, "data/wp_wiadomosci.csv", append = TRUE)
+write_csv(wp_wiadomosci, "../data/wp_wiadomosci.csv", append = TRUE)

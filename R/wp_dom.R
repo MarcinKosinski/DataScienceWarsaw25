@@ -6,23 +6,30 @@ library(RSQLite)
 library(rvest)
 library(stringi)
 
-### KOBIETA ###
-adress <- "http://kobieta.wp.pl/"
-adresses <- c("moda", "uroda", "ludzie", "seks-i-zwiazki", "gwiazdy",
-              "fit", "smaki", "design", "miszmasz") %>%
+### DOM ###
+adress <- "http://dom.wp.pl/"
+adresses <- adress %>%
+  read_html() %>%
+  html_nodes(css = "._1lXcfrU") %>%
+  html_text %>%
+  tolower() %>%
+  gsub("[[:punct:]]", "", .) %>%
+  gsub("[[:space:][:punct:]]", "-", .) %>%
+  chartr("ąćęłńóśźż", "acelnoszz", .) %>%
   paste0(adress, .)
+adresses[8] <- "http://dom.wp.pl/dekoracje-wnetrz"
 
 links <- pblapply(adresses, function(one_ad) {
   ad_html <- read_html(one_ad)
   ad_nodes <- html_nodes(ad_html, css = "script")
   
   ad_text <- ad_nodes %>%
-    grep("kobieta.wp.pl", .) %>%
+    grep("dom.wp.pl", .) %>%
     ad_nodes[.] %>%
     as.character()
   
   biggest_list <- ad_text %>%
-    stri_count_regex("kobieta.wp.pl") %>%
+    stri_count_regex("dom.wp.pl") %>%
     which.max()
   
   big_links <- biggest_list %>%
@@ -44,8 +51,8 @@ links <- pblapply(adresses, function(one_ad) {
 links <- links %>%
   grep("a$", ., value = TRUE)
 
-db <- dbConnect(drv = SQLite(), dbname = "data/wp.db")
-db_links <- dbGetQuery(db, "SELECT links FROM wp_kobieta")
+db <- dbConnect(drv = SQLite(), dbname = "../data/wp.db")
+db_links <- dbGetQuery(db, "SELECT links FROM wp_dom")
 links <- setdiff(links, db_links$links)
 
 bodies <- pblapply(links, function(link) {
@@ -61,18 +68,18 @@ bodies <- pblapply(links, function(link) {
   unlist() %>%
   gsub("'", "''", .)
 
-wp_kobieta <- data_frame(links = links, bodies = bodies) %>%
+wp_dom <- data_frame(links = links, bodies = bodies) %>%
   filter(bodies != "Hmm... Nie ma takiej strony.")
 
 db_next <- "', '"
 
-for (i in 1:nrow(wp_kobieta)) {
+for (i in 1:nrow(wp_dom)) {
   dbGetQuery(db,
-             paste0("INSERT INTO wp_kobieta (links, bodies) VALUES ('",
-                    wp_kobieta$links[i], db_next,
-                    wp_kobieta$bodies[i], "')"))
+             paste0("INSERT INTO wp_dom (links, bodies) VALUES ('",
+                    wp_dom$links[i], db_next,
+                    wp_dom$bodies[i], "')"))
 }
 
 dbDisconnect(db)
 
-write_csv(wp_kobieta, "data/wp_kobieta.csv", append = TRUE)
+write_csv(wp_dom, "../data/wp_dom.csv", append = TRUE)

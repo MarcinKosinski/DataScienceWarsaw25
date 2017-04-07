@@ -6,10 +6,10 @@ library(RSQLite)
 library(rvest)
 library(stringi)
 
-db <- dbConnect(drv = SQLite(), dbname = "data/wp.db")
+db <- dbConnect(drv = SQLite(), dbname = "../data/wp.db")
 
-tab_name <- "wp_turystyka"
-template <- paste0("data/", tab_name, ".csv") %>%
+tab_name <- "wp_dom"
+template <- paste0("../data/", tab_name, ".csv") %>%
   read_csv()
 
 # dbSendQuery(conn = db, paste0("CREATE TABLE ", tab_name,
