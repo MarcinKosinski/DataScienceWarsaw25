@@ -16,7 +16,11 @@ adresses <- adress %>%
   gsub("[[:punct:]]", "", .) %>%
   gsub("[[:space:][:punct:]]", "-", .) %>%
   chartr("ąćęłńóśźż", "acelnoszz", .) %>%
+  c("redakcja-poleca", "spa", "hotele", "gory", "nad-woda", "moda",
+    "romantycznie", "kulinarne-szlaki", "w-podrozy", "magiczne-miejsca",
+    "okazje", "fotografia", "wydarzenia", "na-sniegu") %>%
   paste0(adress, .)
+adresses <- adresses[-12]
 
 links <- pblapply(adresses, function(one_ad) {
   ad_html <- read_html(one_ad)
