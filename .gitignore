@@ -32,3 +32,5 @@ vignettes/*.pdf
 *.utf8.md
 *.knit.md
 .Rproj.user
+
+dicts/polimorfologik-2.1.txt
