@@ -72,4 +72,4 @@ for (i in 1:nrow(wp_facet)) {
 
 # dbDisconnect(db)
 
-write_csv(wp_facet, "../../data/wp_facet.csv", append = TRUE)
+write_csv(wp_facet, "../data/wp_facet.csv", append = TRUE)
