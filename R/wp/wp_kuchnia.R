@@ -1,15 +1,13 @@
-library(dplyr)
-library(magrittr)
-library(pbapply)
-library(readr)
-library(RSQLite)
-library(rvest)
-library(stringi)
-
-### KOBIETA ###
-adress <- "http://kobieta.wp.pl/"
-adresses <- c("moda", "uroda", "ludzie", "seks-i-zwiazki", "gwiazdy",
-              "fit", "smaki", "design", "miszmasz") %>%
+#### KUCHNIA ####
+adress <- "http://kuchnia.wp.pl/"
+adresses <- adress %>%
+  read_html() %>%
+  html_nodes(css = "._1lXcfrU") %>%
+  html_text %>%
+  tolower() %>%
+  gsub("[[:punct:]]", "", .) %>%
+  gsub("[[:space:]]", "-", .) %>%
+  chartr("ąćęłńóśźż", "acelnoszz", .) %>%
   paste0(adress, .)
 
 links <- pblapply(adresses, function(one_ad) {
@@ -17,12 +15,12 @@ links <- pblapply(adresses, function(one_ad) {
   ad_nodes <- html_nodes(ad_html, css = "script")
   
   ad_text <- ad_nodes %>%
-    grep("kobieta.wp.pl", .) %>%
+    grep("kuchnia.wp.pl", .) %>%
     ad_nodes[.] %>%
     as.character()
   
   biggest_list <- ad_text %>%
-    stri_count_regex("kobieta.wp.pl") %>%
+    stri_count_regex("kuchnia.wp.pl") %>%
     which.max()
   
   big_links <- biggest_list %>%
@@ -44,8 +42,8 @@ links <- pblapply(adresses, function(one_ad) {
 links <- links %>%
   grep("a$", ., value = TRUE)
 
-db <- dbConnect(drv = SQLite(), dbname = "../data/wp.db")
-db_links <- dbGetQuery(db, "SELECT links FROM wp_kobieta")
+# db <- dbConnect(drv = SQLite(), dbname = "../data/wp.db")
+db_links <- dbGetQuery(db, "SELECT links FROM wp_kuchnia")
 links <- setdiff(links, db_links$links)
 
 bodies <- pblapply(links, function(link) {
@@ -61,18 +59,18 @@ bodies <- pblapply(links, function(link) {
   unlist() %>%
   gsub("'", "''", .)
 
-wp_kobieta <- data_frame(links = links, bodies = bodies) %>%
+wp_kuchnia <- data_frame(links = links, bodies = bodies) %>%
   filter(bodies != "Hmm... Nie ma takiej strony.")
 
 db_next <- "', '"
 
-for (i in 1:nrow(wp_kobieta)) {
+for (i in 1:nrow(wp_kuchnia)) {
   dbGetQuery(db,
-             paste0("INSERT INTO wp_kobieta (links, bodies) VALUES ('",
-                    wp_kobieta$links[i], db_next,
-                    wp_kobieta$bodies[i], "')"))
+             paste0("INSERT INTO wp_kuchnia (links, bodies) VALUES ('",
+                    wp_kuchnia$links[i], db_next,
+                    wp_kuchnia$bodies[i], "')"))
 }
 
-dbDisconnect(db)
+# dbDisconnect(db)
 
-write_csv(wp_kobieta, "../data/wp_kobieta.csv", append = TRUE)
+write_csv(wp_kuchnia, "../../data/wp_kuchnia.csv", append = TRUE)

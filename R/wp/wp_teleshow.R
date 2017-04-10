@@ -1,36 +1,26 @@
-library(dplyr)
-library(magrittr)
-library(pbapply)
-library(readr)
-library(RSQLite)
-library(rvest)
-library(stringi)
-
-### TECH ###
-adress <- "http://tech.wp.pl/"
+#### TELESHOW ####
+adress <- "http://teleshow.wp.pl/"
 adresses <- adress %>%
   read_html() %>%
   html_nodes(css = "._1lXcfrU") %>%
   html_text %>%
   tolower() %>%
   gsub("[[:punct:]]", "", .) %>%
-  gsub("[[:space:][:punct:]]", "-", .) %>%
+  gsub("[[:space:]]", "-", .) %>%
   chartr("ąćęłńóśźż", "acelnoszz", .) %>%
-  paste0(adress, .) %>%
-  .[-c(2, 6, 7, 9)]
-adresses[5] <- "http://tech.wp.pl/technologie-nauka"
+  paste0(adress, .)
 
 links <- pblapply(adresses, function(one_ad) {
   ad_html <- read_html(one_ad)
   ad_nodes <- html_nodes(ad_html, css = "script")
   
   ad_text <- ad_nodes %>%
-    grep("tech.wp.pl", .) %>%
+    grep("teleshow.wp.pl", .) %>%
     ad_nodes[.] %>%
     as.character()
   
   biggest_list <- ad_text %>%
-    stri_count_regex("tech.wp.pl") %>%
+    stri_count_regex("teleshow.wp.pl") %>%
     which.max()
   
   big_links <- biggest_list %>%
@@ -52,8 +42,8 @@ links <- pblapply(adresses, function(one_ad) {
 links <- links %>%
   grep("a$", ., value = TRUE)
 
-db <- dbConnect(drv = SQLite(), dbname = "../data/wp.db")
-db_links <- dbGetQuery(db, "SELECT links FROM wp_tech")
+# db <- dbConnect(drv = SQLite(), dbname = "../data/wp.db")
+db_links <- dbGetQuery(db, "SELECT links FROM wp_teleshow")
 links <- setdiff(links, db_links$links)
 
 bodies <- pblapply(links, function(link) {
@@ -69,18 +59,18 @@ bodies <- pblapply(links, function(link) {
   unlist() %>%
   gsub("'", "''", .)
 
-wp_tech <- data_frame(links = links, bodies = bodies) %>%
+wp_teleshow <- data_frame(links = links, bodies = bodies) %>%
   filter(bodies != "Hmm... Nie ma takiej strony.")
 
 db_next <- "', '"
 
-for (i in 1:nrow(wp_tech)) {
+for (i in 1:nrow(wp_teleshow)) {
   dbGetQuery(db,
-             paste0("INSERT INTO wp_tech (links, bodies) VALUES ('",
-                    wp_tech$links[i], db_next,
-                    wp_tech$bodies[i], "')"))
+             paste0("INSERT INTO wp_teleshow (links, bodies) VALUES ('",
+                    wp_teleshow$links[i], db_next,
+                    wp_teleshow$bodies[i], "')"))
 }
 
-dbDisconnect(db)
+# dbDisconnect(db)
 
-write_csv(wp_tech, "../data/wp_tech.csv", append = TRUE)
+write_csv(wp_teleshow, "../../data/wp_teleshow.csv", append = TRUE)

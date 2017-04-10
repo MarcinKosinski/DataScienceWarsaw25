@@ -1,10 +1,3 @@
-library(RSQLite)
-library(magrittr)
-library(stringi)
-library(tm)
-library(dplyr)
-library(pbapply)
-
 #### dicts ####
 # https://github.com/morfologik/
 library(data.table)

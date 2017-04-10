@@ -1,19 +1,12 @@
-library(dplyr)
-library(magrittr)
-library(pbapply)
-library(readr)
-library(RSQLite)
-library(rvest)
-library(stringi)
-
-### FACET ###
-adress <- "http://facet.wp.pl/"
+#### OPINIE ####
+adress <- "http://opinie.wp.pl/"
 adresses <- adress %>%
   read_html() %>%
   html_nodes(css = "._1lXcfrU") %>%
   html_text %>%
   tolower() %>%
-  gsub("[[:space:]]", "-", .) %>%
+  gsub("[[:punct:]]", "", .) %>%
+  gsub("[[:space:][:punct:]]", "-", .) %>%
   chartr("ąćęłńóśźż", "acelnoszz", .) %>%
   paste0(adress, .)
 
@@ -22,12 +15,12 @@ links <- pblapply(adresses, function(one_ad) {
   ad_nodes <- html_nodes(ad_html, css = "script")
   
   ad_text <- ad_nodes %>%
-    grep("facet.wp.pl", .) %>%
+    grep("opinie.wp.pl", .) %>%
     ad_nodes[.] %>%
     as.character()
   
   biggest_list <- ad_text %>%
-    stri_count_regex("facet.wp.pl") %>%
+    stri_count_regex("opinie.wp.pl") %>%
     which.max()
   
   big_links <- biggest_list %>%
@@ -49,8 +42,8 @@ links <- pblapply(adresses, function(one_ad) {
 links <- links %>%
   grep("a$", ., value = TRUE)
 
-db <- dbConnect(drv = SQLite(), dbname = "../data/wp.db")
-db_links <- dbGetQuery(db, "SELECT links FROM wp_facet")
+# db <- dbConnect(drv = SQLite(), dbname = "../data/wp.db")
+db_links <- dbGetQuery(db, "SELECT links FROM wp_opinie")
 links <- setdiff(links, db_links$links)
 
 bodies <- pblapply(links, function(link) {
@@ -66,18 +59,18 @@ bodies <- pblapply(links, function(link) {
   unlist() %>%
   gsub("'", "''", .)
 
-wp_facet <- data_frame(links = links, bodies = bodies) %>%
+wp_opinie <- data_frame(links = links, bodies = bodies) %>%
   filter(bodies != "Hmm... Nie ma takiej strony.")
 
 db_next <- "', '"
 
-for (i in 1:nrow(wp_facet)) {
+for (i in 1:nrow(wp_opinie)) {
   dbGetQuery(db,
-             paste0("INSERT INTO wp_facet (links, bodies) VALUES ('",
-                    wp_facet$links[i], db_next,
-                    wp_facet$bodies[i], "')"))
+             paste0("INSERT INTO wp_opinie (links, bodies) VALUES ('",
+                    wp_opinie$links[i], db_next,
+                    wp_opinie$bodies[i], "')"))
 }
 
-dbDisconnect(db)
+# dbDisconnect(db)
 
-write_csv(wp_facet, "../data/wp_facet.csv", append = TRUE)
+write_csv(wp_opinie, "../../data/wp_opinie.csv", append = TRUE)

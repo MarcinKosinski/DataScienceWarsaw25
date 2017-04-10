@@ -1,13 +1,5 @@
-library(dplyr)
-library(magrittr)
-library(pbapply)
-library(readr)
-library(RSQLite)
-library(rvest)
-library(stringi)
-
-### OPINIE ###
-adress <- "http://opinie.wp.pl/"
+#### MOTO ####
+adress <- "http://moto.wp.pl/"
 adresses <- adress %>%
   read_html() %>%
   html_nodes(css = "._1lXcfrU") %>%
@@ -16,19 +8,20 @@ adresses <- adress %>%
   gsub("[[:punct:]]", "", .) %>%
   gsub("[[:space:][:punct:]]", "-", .) %>%
   chartr("ąćęłńóśźż", "acelnoszz", .) %>%
-  paste0(adress, .)
+  paste0(adress, .) %>%
+  .[-c(3, 5, 6)]
 
 links <- pblapply(adresses, function(one_ad) {
   ad_html <- read_html(one_ad)
   ad_nodes <- html_nodes(ad_html, css = "script")
   
   ad_text <- ad_nodes %>%
-    grep("opinie.wp.pl", .) %>%
+    grep("moto.wp.pl", .) %>%
     ad_nodes[.] %>%
     as.character()
   
   biggest_list <- ad_text %>%
-    stri_count_regex("opinie.wp.pl") %>%
+    stri_count_regex("moto.wp.pl") %>%
     which.max()
   
   big_links <- biggest_list %>%
@@ -50,8 +43,8 @@ links <- pblapply(adresses, function(one_ad) {
 links <- links %>%
   grep("a$", ., value = TRUE)
 
-db <- dbConnect(drv = SQLite(), dbname = "../data/wp.db")
-db_links <- dbGetQuery(db, "SELECT links FROM wp_opinie")
+# db <- dbConnect(drv = SQLite(), dbname = "../data/wp.db")
+db_links <- dbGetQuery(db, "SELECT links FROM wp_moto")
 links <- setdiff(links, db_links$links)
 
 bodies <- pblapply(links, function(link) {
@@ -67,18 +60,18 @@ bodies <- pblapply(links, function(link) {
   unlist() %>%
   gsub("'", "''", .)
 
-wp_opinie <- data_frame(links = links, bodies = bodies) %>%
+wp_moto <- data_frame(links = links, bodies = bodies) %>%
   filter(bodies != "Hmm... Nie ma takiej strony.")
 
 db_next <- "', '"
 
-for (i in 1:nrow(wp_opinie)) {
+for (i in 1:nrow(wp_moto)) {
   dbGetQuery(db,
-             paste0("INSERT INTO wp_opinie (links, bodies) VALUES ('",
-                    wp_opinie$links[i], db_next,
-                    wp_opinie$bodies[i], "')"))
+             paste0("INSERT INTO wp_moto (links, bodies) VALUES ('",
+                    wp_moto$links[i], db_next,
+                    wp_moto$bodies[i], "')"))
 }
 
-dbDisconnect(db)
+# dbDisconnect(db)
 
-write_csv(wp_opinie, "../data/wp_opinie.csv", append = TRUE)
+write_csv(wp_moto, "../../data/wp_moto.csv", append = TRUE)
