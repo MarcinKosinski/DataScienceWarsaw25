@@ -1,8 +1,8 @@
 #### dicts ####
 # https://github.com/morfologik/
 library(data.table)
-polish_stemming <- fread('dicts/polimorfologik-2.1.txt', data.table = FALSE, encoding = 'UTF-8')
-polish_stopwords <- strsplit(readLines('dicts/polish_stopwords.txt', encoding = 'UTF-8'), ", ")[[1]]
+polish_stemming <- fread('../dicts/polimorfologik-2.1.txt', data.table = FALSE, encoding = 'UTF-8')
+polish_stopwords <- strsplit(readLines('../dicts/polish_stopwords.txt', encoding = 'UTF-8'), ", ")[[1]]
 
 lower_stem <- polish_stemming %>%
   set_colnames(c('to', 'from', 'no_need')) %>%
@@ -19,16 +19,24 @@ lower_stem_split <-
             size = nrow(lower_stem),
             replace = TRUE))
 
-#### data ####
-db <- dbConnect(drv = SQLite(), dbname = "data/wp.db")
+#### remove previous data ####
+db <- dbConnect(drv = SQLite(), dbname = "../data/wp.db")
 
+dbListTables(db) %>%
+  grep('stem', . , value = TRUE) %>%
+  sapply(function(stem_db){
+    dbRemoveTable(db, stem_db)
+  })
+
+#### stem ####
+library(tm)
 dbListTables(db) %>%
   pbsapply(function(table){
     text = 
       dbGetQuery(db, paste0('SELECT bodies FROM ',  table)) %>%
       use_series(bodies) %>%
       lapply(tolower) %>%
-      lapply(removeWords, c("\"", "ul.", "godz.", polish_stopwords, 1:2000)) %>% 
+      lapply(tm::removeWords, c("\"", "ul.", "godz.", polish_stopwords, 1:2000)) %>% 
       stri_extract_all_words()
     
     dict <- data_frame(
@@ -71,4 +79,5 @@ ls(pattern = 'wp') %>%
   }
 )
   
+dbDisconnect(db)
   
