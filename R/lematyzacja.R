@@ -1,29 +1,29 @@
 #### dicts ####
 # https://github.com/morfologik/
 library(data.table)
-polish_stemming <- fread('../dicts/polimorfologik-2.1.txt', data.table = FALSE, encoding = 'UTF-8')
+polish_lematization <- fread('../dicts/polimorfologik-2.1.txt', data.table = FALSE, encoding = 'UTF-8')
 polish_stopwords <- strsplit(readLines('../dicts/polish_stopwords.txt', encoding = 'UTF-8'), ", ")[[1]]
 
-lower_stem <- polish_stemming %>%
+lower_lema <- polish_lematization %>%
   set_colnames(c('to', 'from', 'no_need')) %>%
   select(-no_need) %>%
-  mutate(to = tolower(to),
+  mutate(to   = tolower(to),
          from = tolower(from))
 
 splits_num <- 1:20
-lower_stem_split <- 
-  split(lower_stem, 
+lower_lema_split <- 
+  split(lower_lema, 
         f = 
           sample(
             splits_num,
-            size = nrow(lower_stem),
+            size = nrow(lower_lema),
             replace = TRUE))
 
 #### remove previous data ####
 db <- dbConnect(drv = SQLite(), dbname = "../data/wp.db")
 
 dbListTables(db) %>%
-  grep('stem', . , value = TRUE) %>%
+  grep('_lematized|stem', . , value = TRUE) %>%
   sapply(function(stem_db){
     dbRemoveTable(db, stem_db)
   })
@@ -49,8 +49,8 @@ dbListTables(db) %>%
     for(i in splits_num) {
       dict$words <- dict$words %>%
         plyr::mapvalues(warn_missing = FALSE,
-                        from = lower_stem_split[[i]]$from,
-                        to = lower_stem_split[[i]]$to)
+                        from = lower_lema_split[[i]]$from,
+                        to   = lower_lema_split[[i]]$to)
     }
     
     assign(
@@ -75,7 +75,7 @@ ls(pattern = 'wp') %>%
     # group_by(article) %>%
     # do(words_in_art = paste0(.$words, collapse = " ")) %>%
     
-    dbWriteTable(db, paste0(table, "_stemmed"), arts_words)  
+    dbWriteTable(db, paste0(table, "_lematized"), arts_words)  
   }
 )
   
