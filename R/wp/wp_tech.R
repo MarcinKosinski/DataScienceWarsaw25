@@ -75,4 +75,4 @@ for (i in 1:nrow(wp_tech)) {
 
 # dbDisconnect(db)
 
-write_csv(wp_tech, "../data/wp_tech.csv", append = TRUE)
+update_csv('wp_tech')

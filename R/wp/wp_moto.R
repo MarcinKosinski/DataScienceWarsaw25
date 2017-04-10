@@ -74,4 +74,4 @@ for (i in 1:nrow(wp_moto)) {
 
 # dbDisconnect(db)
 
-write_csv(wp_moto, "../data/wp_moto.csv", append = TRUE)
+update_csv('wp_moto')

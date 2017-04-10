@@ -60,4 +60,4 @@ for (i in 1:nrow(wp_wiadomosci)) {
 
 # dbDisconnect(db)
 
-write_csv(wp_wiadomosci, "../data/wp_wiadomosci.csv", append = TRUE)
+update_csv('wp_wiadomosci')

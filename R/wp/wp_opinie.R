@@ -73,4 +73,4 @@ for (i in 1:nrow(wp_opinie)) {
 
 # dbDisconnect(db)
 
-write_csv(wp_opinie, "../data/wp_opinie.csv", append = TRUE)
+update_csv('wp_opinie')
