@@ -77,4 +77,4 @@ for (i in 1:nrow(wp_turystyka)) {
 
 # dbDisconnect(db)
 
-update_csv('wp_turysytyka')
+update_csv('wp_turystyka')
