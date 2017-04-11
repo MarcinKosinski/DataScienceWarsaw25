@@ -551,3 +551,7 @@ The documentation enabled me to provide simple update for `ml_kmeans()` ([#179](
 ## Thank you for your attention
 
 If you liked the presentation, then join workshop about `sparklyr` at [meet(R) in TriCity #5 - warsztaty](https://www.meetup.com/Trojmiejska-Grupa-Entuzjastow-R/events/238671657/) (Saturday, May 13, 2017).
+
+## What is a Spark DataFrame
+
+Check the documentation: [Datasets and DataFrames](http://spark.apache.org/docs/latest/sql-programming-guide.html#datasets-and-dataframes)
