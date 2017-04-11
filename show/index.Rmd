@@ -6,7 +6,7 @@ date: April 11, 2017 <br> <a href="https://www.meetup.com/Data-Science-Warsaw/ev
 output:
   revealjs::revealjs_presentation:
     theme: night
-    highlight: pygments
+    highlight: zenburn
     self_contained: false
     center: true
     reveal_options:
@@ -49,9 +49,8 @@ opts_chunk$set(
 - [Apache Spark](http://spark.apache.org/)
 - [Spark MLlib](http://spark.apache.org/mllib/) (machine learning library)
 - [R (data science) language](https://cran.r-project.org/) 
-- [sparkapi](https://github.com/rstudio/sparkapi) R package
 - [dplyr](https://github.com/tidyverse/dplyr) R package
-- [sparklyr](http://spark.rstudio.com): dplyr back-end for Spark MLlib executed from R via sparkapi
+- [sparklyr](http://spark.rstudio.com): dplyr back-end for Spark MLlib executed from R
 
 # Apache Spark
 
@@ -65,7 +64,7 @@ opts_chunk$set(
 > Write applications quickly in Java, Scala, Python, R.
 
 ```{}
-./bin/spark-shell --master local[N] # N - threads  / local, standalone
+./bin/spark-shell --master local[N] # N - threads  / local
 ./bin/pyspark     --master mesos://host:5050  # Mesos cluster
 ./bin/sparkR      --master --master yarn --deploy-mode client
 ```
@@ -141,14 +140,14 @@ SparkR supports the following machine learning algorithms currently:
 - [spark.kstest](http://spark.apache.org/docs/latest/api/R/spark.kstest.html): Kolmogorov-Smirnov Test
 
 
-> SparkR is not sparklyr. In the time I learned sparklyr, the SparkR provided only `glm`.
+> SparkR is not sparklyr. When I learned sparklyr, the SparkR provided only `glm`.
 </small>
 
 # R
 
 ## R
 
-> An open source programming language and software environment for statistical computing and graphics.
+> Open source programming language and software environment for statistical computing and graphics.
 
 Language of Data Science
 
@@ -171,7 +170,382 @@ Key tool in the statistician toolbox.
 
 ## [dplyr](https://cran.r-project.org/web/packages/dplyr/index.html): <br> A Grammar of Data Manipulation
 
-- 1 R Top Package w/ [113,363 monthly distinct downloads](https://www.rdocumentation.org/)
+<small>
+#1 R Top Package w/ [113,363 monthly distinct downloads](https://www.rdocumentation.org/)<img src="https://cranlogs.r-pkg.org/badges/grand-total/dplyr"><br>
+dplyr is designed to abstract over how the data is stored. 
+</small>
+
+- Convenient pipe operator `%>%` (also in the [magrittr](https://cran.r-project.org/web/packages/magrittr/vignettes/magrittr.html) package)
+- Easy unified R interface to many (SQL like) databases
+- Tidy functions for the most common data manipulations
+
+<img src="dplyr.png" height='75px', width='65px'><br>
+
+<small>
+If you are new to dplyr, the best place to start is the [data import chapter](http://r4ds.had.co.nz/transform.html) in R for data science.
+</small>
+```{r, eval=FALSE}
+install.packages("dplyr")
+```
 
 
-<img src="https://cranlogs.r-pkg.org/badges/grand-total/dplyr">
+## %>%
+
+> Pipe an object forward into a function or call expression.
+
+```{r, eval=FALSE}
+x %>% f  == f(x)
+x %>% f(y) == f(x, y)
+x %>% f(y, arg = ., z) == f(y, arg = x, z)
+```
+
+```{r, eval=FALSE}
+car_data <- 
+  mtcars %>%
+  subset(hp > 100) %>%
+  aggregate(. ~ cyl, data = ., FUN = . %>% mean %>% round(2)) %>%
+  transform(kpl = mpg %>% multiply_by(0.4251)) %>%
+  print
+
+# A horrific alternative would be to write
+
+car_data <- 
+  transform(aggregate(. ~ cyl, 
+                      data = subset(mtcars, hp > 100), 
+                      FUN = function(x) round(mean(x, 2))), 
+            kpl = mpg*0.4251)
+```
+
+(source [magrittr vignette](https://cran.r-project.org/web/packages/magrittr/vignettes/magrittr.html))
+
+## dplyr: tidy functionalities for most common data operations
+
+<small>dplyr is a grammar of data manipulation, providing a consistent set of verbs that help you solve the most common data manipulation challenges:</small>
+
+-   `mutate()`    adds new variables (functions of existing variables)
+-   `select()`    picks variables based on their names.
+-   `filter()`    picks cases based on their values.
+-   `summarise()` reduces multiple values down to a single summary.
+-   `arrange()`   changes the ordering of the rows.
+
+(source [dplyr README](https://github.com/tidyverse/dplyr/blob/master/README.md))
+
+## dplyr: basic example 1
+
+```{r,echo=-1}
+load('starwars.rda')
+library(dplyr)
+starwars %>% 
+  filter(species == "Droid") %>%
+  select(name, mass, height, ends_with("color")) %>%
+  mutate(name, bmi = mass / ((height / 100)  ^ 2)) %>%
+  arrange(desc(mass))
+```
+
+## dplyr: basic example 2
+
+```{r}
+starwars %>%
+  group_by(species) %>%
+  summarise(
+    n = n(),
+    mass = mean(mass, na.rm = TRUE)
+  ) %>%
+  filter(n > 1)
+```
+
+## _
+
+## _
+
+Functions with `_` extension are used to work with characters.
+
+```{r, eval=FALSE}
+attr <- "attribute_name"
+response <- "response_name"
+# dplyr_characters <- function(attr, response) {
+df1 <- df %>%
+    select_("ID", attr, response) %>%
+    mutate_(.dots = setNames(list(paste0("haven::as_factor(", attr, ")")), attr)) %>%
+    rename_(.dots = setNames(response, "values"))
+# return(df1)
+# }
+```
+
+This can be useful in the functions' parametrization.
+
+## dplyr: [databases unified interface](https://cran.r-project.org/web/packages/dplyr/vignettes/databases.html)
+
+<small>
+> `src_sqlite()`, `src_mysql()`, `src_postgres()` and `src_bigquery()` are also supported by `dplyr`
+</small>
+
+```{r}
+library(nycflights13)
+my_db <- src_sqlite("my_db.sqlite3", create = T)
+flights_sqlite <- copy_to(my_db, flights, temporary = FALSE, overwrite = TRUE)
+# once the data is in the databse, it can be extracted with
+flights_sqlite <- tbl(my_db, "flights") # OR
+flights_sqlite <- tbl(my_db, dbplyr::sql("SELECT * FROM flights"))
+```
+
+```{r}
+select(flights_sqlite, year:day, dep_delay, arr_delay) %>%
+  filter(dep_delay > 240)
+```
+
+## dplyr: [databases unified interface](https://cran.r-project.org/web/packages/dplyr/vignettes/databases.html) - laziness
+
+```{r, warning=TRUE}
+c1 <- filter(flights_sqlite, year == 2013, month == 1, day == 1)
+c2 <- select(c1, year, month, day, carrier, dep_delay, air_time, distance)
+c3 <- mutate(c2, speed = distance / air_time * 60)
+c4 <- arrange(c3, year, month, day, carrier)
+```
+<small>
+Suprisingly, this sequence of operations never actually touches the database. <br>It’s not until you ask for the data (e.g. by printing `c4`) that dplyr generates the SQL and requests the results from the database.<br> Even then it only pulls down 10 rows.
+<br> To pull down all the results use `collect()`
+</small>
+
+```{r, eval=FALSE}
+explain(c4) # c4$query does not longer works anymore
+```
+
+```{r, eval=FALSE}
+SELECT `year`, `month`, `day`, `carrier`, `dep_delay`, `air_time`, `distance`, `distance` / `air_time` * 60.0 AS `speed`
+FROM (SELECT `year` AS `year`, `month` AS `month`, `day` AS `day`, `carrier` AS `carrier`, `dep_delay` AS `dep_delay`, `air_time` AS `air_time`, `distance` AS `distance`
+FROM (SELECT *
+FROM `flights`
+WHERE ((`year` = 2013.0) AND (`month` = 1.0) AND (`day` = 1.0))))
+ORDER BY `year`, `month`, `day`, `carrier`
+<PLAN>
+   addr       opcode p1 p2 p3           p4 p5 comment
+1     0         Init  0 54  0              00      NA
+2     1   SorterOpen  4  9  0       k(1,B) 00      NA
+3     2     OpenRead  3  2  0           19 00      NA
+4     3       Rewind  3 35  0              00      NA
+5     4       Column  3  0  1              00      NA
+6     5           Ne  2 34  1     (BINARY) 54      NA
+```
+
+## dplyr - one need to know
+
+Code example - [<i class='fa fa-stack-overflow'></i> Can't gather tibble in R (anymore)](http://stackoverflow.com/questions/39231807/cant-gather-tibble-in-r)
+
+
+```{r, eval=FALSE}
+library(tidyr) # dplyr 0.4.2
+iris %>%
+  select(-Sepal.Width) %>%
+  gather(Species) %>% head
+  Species      Species value
+1  setosa Sepal.Length   5.1
+2  setosa Sepal.Length   4.9
+3  setosa Sepal.Length   4.7
+4  setosa Sepal.Length   4.6
+5  setosa Sepal.Length   5.0
+6  setosa Sepal.Length   5.4
+```
+
+```{r, eval=FALSE}
+library(tidyr) # dplyr 0.4.3
+Error: Each variable must have a unique name.
+Problem variables: 'Species'
+```
+
+<small>
+dplyr authors tends to develop the package without looking at backward compatibility.
+</small>
+
+# sparklyr
+
+## sparklyr - integRation
+
+<img src="sparklyr.png">
+
+- dplyr language/syntax/pipes
+- Spark computational power
+- Spark ML algorithms 
+
+All from R/RStudio.
+
+## sparklyr - about ML integRation
+
+> Thought about learnig Scala? Leave it - use sparklyr!
+
+<small>
+**sparklyr** provides bindings to Spark’s distributed [machine learning](https://spark.apache.org/docs/latest/mllib-guide.html) library. In particular, sparklyr allows you to access the machine learning routines provided by the [spark.ml](https://spark.apache.org/docs/latest/ml-guide.html) package. Together with sparklyr’s [dplyr](http://spark.rstudio.com/dplyr.html) interface, you can easily create and tune machine learning workflows on Spark, orchestrated entirely within R.
+</small>
+
+sparklyr provides three families of functions that you can use with Spark machine learning:
+
+- Machine learning algorithms for analyzing data (`ml_*`)
+- Feature transformers for manipulating individual features (`ft_*`)
+- Functions for manipulating Spark DataFrames (`sdf_*`)
+
+(source [sparklyr webpage](http://spark.rstudio.com/mllib.html))
+
+## sparklyr - setting up
+
+```{r, eval=FALSE}
+# use 1) or 2) to install sparklyr
+# 1) library(devtools);install_github('rstudio/sparklyr') - development verion
+# 2) install.packages('CRAN') - release version
+library(sparklyr)
+spark_install(version = "2.0.0")
+sc <- spark_connect(master="local") # local mode
+```
+
+## Connection to [YARN](https://hadoop.apache.org/docs/r2.7.2/hadoop-yarn/hadoop-yarn-site/YARN.html)
+
+```{r, eval=FALSE}
+sc <- 
+spark_connect(master="yarn",
+   config = list(
+     default = list(
+       spark.submit.deployMode  = "client",
+       spark.executor.instances = 20, 
+       spark.executor.memory    = "2G",
+       spark.executor.cores     = 4,
+       spark.driver.memory      = "4G")))
+```
+
+<small>
+One don’t have to specify config by himself. Specify parameters for Spark application with [config.yml](http://spark.rstudio.com/deployment.html#configuration) files so that you can benefit from many profiles (development, production).
+
+In version 2.0.0 it is desired to name master `yarn` instead of `yarn-client` and passing the `deployMode` parameter, which is different from version 1.6.x. 
+
+All available parameters can be found in [Running Spark on YARN](http://spark.apache.org/docs/latest/running-on-yarn.html) documentation page.
+</small>
+
+
+## dplyr and DBI interface on Spark
+
+<small>
+When connecting to YARN, it is most probable that you would like to use data tables that are stored on Hive. Remember that
+
+> Configuration of Hive is done by placing your hive-site.xml, core-site.xml (for security configuration), and hdfs-site.xml (for HDFS configuration) file in conf/.
+
+where `conf/` is set as `HADOOP_CONF_DIR`. Read more about using [Hive tables from Spark](http://spark.apache.org/docs/latest/sql-programming-guide.html#hive-tables)
+
+
+```{r, eval=FALSE}
+iris_tbl <- copy_to(sc, iris, "iris") # sc is a spark_connection
+iris_tbl %>%
+   select(Petal_Length, Petal_Width) %>%
+   top_n(40, Petal_Width) %>%
+   arrange(Petal_Length)
+```
+
+`sparklyr` package also provides interface for functions defined in `DBI` package
+
+```{r, eval=FALSE}
+library(DBI)
+dbListTables(sc)
+dbGetQuery(sc, "use database_name")
+data_tbl3 <- dbGetQuery(sc, "SELECT * from table_name")
+dbListFields(sc, data_tbl3)
+dbListTables(sc)
+```
+
+</small>
+
+# Use Case: <br> [Extending sparklyr to Compute Cost for K-means](http://r-addict.com/2016/08/25/Extending-Sparklyr.html)
+
+## Preparing Spark ML Algorithm
+
+<small>
+The basic example on how sparklyr invokes Scala code from Spark ML will be presented on K-means algorithm. If you check the code of `sparklyr::ml_kmeans()` function you will see that for input `tbl_spark` object, named x and character vector containing features’ names (`featuers`)
+
+```{r, eval=FALSE}
+envir <- new.env(parent = emptyenv())
+df    <- spark_dataframe(x)
+sc    <- spark_connection(df)
+df    <- ml_prepare_features(df, features)
+tdf   <- ml_prepare_dataframe(df, features, ml.options = ml.options, envir = envir)
+```
+
+sparklyr ensures that you have proper connection to spark data frame and prepares features in convenient form and naming convention. At the end it prepares a Spark DataFrame for Spark ML routines.
+
+This is done in a new environment, so that we can store arguments for future ML algorithm and the model itself in its own environment. This is safe and clean solution. You can construct a simple model calling a Spark ML class like this
+
+```{r, eval=FALSE}
+envir$model <- "org.apache.spark.ml.clustering.KMeans"
+kmeans      <- invoke_new(sc, envir$model)
+```
+
+which invokes new object of class KMeans on which we can invoke parameters setters to change default parameters.
+</small>
+
+## Invoking Spark ML Algorithm
+
+...which invokes new object of class KMeans on which we can invoke parameters setters to change default parameters.
+
+```{r, eval=FALSE}
+model <- kmeans %>%
+    invoke("setK", centers) %>%
+    invoke("setMaxIter", iter.max) %>%
+    invoke("setTol", tolerance) %>%
+    invoke("setFeaturesCol", envir$features)
+# features where set in ml_prepare_dataframe
+```
+
+
+## Fitting Spark ML Algorithm
+
+For an existing object of `KMeans` class we can invoke its method called `fit` that is responsible for starting the K-means clustering algorithm
+
+```{r, eval=FALSE}
+fit <- model %>% invoke("fit", tdf)
+# reminder: 
+# tdf   <- ml_prepare_dataframe(df, features, ml.options = ml.options, envir = envir)
+```
+
+which returns new object on which we can compute, e.g centers of outputted clustering
+
+```{r, eval=FALSE}
+kmmCenters <- invoke(fit, "clusterCenters")
+```
+
+or the Within Set Sum of Squared Errors (called Cost) 
+
+```{r, eval=FALSE}
+kmmCost <- invoke(fit, "computeCost", tdf)
+```
+
+which is my small contribution [#173](https://github.com/rstudio/sparklyr/pull/173)
+
+## or use spaklyr
+
+```{r, eval=FALSE}
+iris_tbl %>%
+   select(Petal_Width, Petal_Length) %>%
+   ml_kmeans(centers = 3, compute.cost = TRUE) %>%
+   print()
+```
+
+```{r, eval=FALSE}
+K-means clustering with 3 clusters
+
+Cluster centers:
+  Petal_Width Petal_Length
+1    1.359259     4.292593
+2    2.047826     5.626087
+3    0.246000     1.462000
+
+Within Set Sum of Squared Errors =  31.41289
+```
+
+<small>
+
+All that can be better understood if we’ll have a look on [Spark ML documentation for KMeans](https://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.ml.clustering.KMeans) . Be carefull [not to confuse with Spark MLlib](https://github.com/rstudio/sparklyr/issues/178#issuecomment-240472368) where methods and parameters have different names than those in Spark ML. 
+
+This enabled me to provide simple update for `ml_kmeans()` ([#179](https://github.com/rstudio/sparklyr/pull/179)) so that we can specify `tol` (tolerance) parameter in `ml_kmeans()` to support tolerance of convergence.
+
+</small>
+
+# Questions?
+
+## Thank you for your attention
+
+If you liked the presentation, then join workshop about `sparklyr` at [meet(R) in TriCity #5 - warsztaty](https://www.meetup.com/Trojmiejska-Grupa-Entuzjastow-R/events/238671657/) (Saturday, May 13, 2017).
