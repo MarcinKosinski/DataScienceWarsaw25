@@ -758,7 +758,7 @@ ORDER BY <span class="st">`</span><span class="dt">year</span><span class="st">`
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(tidyr) <span class="co"># dplyr 0.4.2</span>
 iris %&gt;%
 <span class="st">  </span><span class="kw">select</span>(-Sepal.Width) %&gt;%
-<span class="st">  </span><span class="kw">gather</span>(Species) %&gt;%<span class="st"> </span>head
+<span class="st">  </span>tidyr::<span class="kw">gather</span>(Species) %&gt;%<span class="st"> </span>head
   Species      Species value
 <span class="dv">1</span>  setosa Sepal.Length   <span class="fl">5.1</span>
 <span class="dv">2</span>  setosa Sepal.Length   <span class="fl">4.9</span>
@@ -767,6 +767,7 @@ iris %&gt;%
 <span class="dv">5</span>  setosa Sepal.Length   <span class="fl">5.0</span>
 <span class="dv">6</span>  setosa Sepal.Length   <span class="fl">5.4</span></code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(tidyr) <span class="co"># dplyr 0.4.3</span>
+<span class="co"># the same code</span>
 Error:<span class="st"> </span>Each variable must have a unique name.
 Problem variables:<span class="st"> &#39;Species&#39;</span></code></pre></div>
 <p><small> dplyr authors tends to develop the package without looking at backward compatibility. </small></p>
@@ -821,34 +822,32 @@ sc &lt;-<span class="st"> </span><span class="kw">spark_connect</span>(<span cla
 <blockquote>
 <p>Configuration of Hive is done by placing your hive-site.xml, core-site.xml (for security configuration), and hdfs-site.xml (for HDFS configuration) file in conf/.</p>
 </blockquote>
-<p>where <code>conf/</code> is set as <code>HADOOP_CONF_DIR</code>. Read more about using <a href="http://spark.apache.org/docs/latest/sql-programming-guide.html#hive-tables">Hive tables from Spark</a></p>
+<p>where <code>conf/</code> is set as <code>HADOOP_CONF_DIR</code>. Read more about using <a href="http://spark.apache.org/docs/latest/sql-programming-guide.html#hive-tables">Hive tables from Spark</a> </small></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">iris_tbl &lt;-<span class="st"> </span><span class="kw">copy_to</span>(sc, iris, <span class="st">&quot;iris&quot;</span>) <span class="co"># sc is a spark_connection</span>
 iris_tbl %&gt;%
 <span class="st">   </span><span class="kw">select</span>(Petal_Length, Petal_Width) %&gt;%
 <span class="st">   </span><span class="kw">top_n</span>(<span class="dv">40</span>, Petal_Width) %&gt;%
 <span class="st">   </span><span class="kw">arrange</span>(Petal_Length)</code></pre></div>
-<p><code>sparklyr</code> package also provides interface for functions defined in <code>DBI</code> package</p>
+<p><small> <code>sparklyr</code> package also provides interface for functions defined in <code>DBI</code> package </small></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(DBI)
 <span class="kw">dbListTables</span>(sc)
 <span class="kw">dbGetQuery</span>(sc, <span class="st">&quot;use database_name&quot;</span>)
 data_tbl3 &lt;-<span class="st"> </span><span class="kw">dbGetQuery</span>(sc, <span class="st">&quot;SELECT * from table_name&quot;</span>)
 <span class="kw">dbListFields</span>(sc, data_tbl3)
 <span class="kw">dbListTables</span>(sc)</code></pre></div>
-<p></small></p>
 </section></section>
 <section><section id="use-case-extending-sparklyr-to-compute-cost-for-k-means" class="titleslide slide level1"><h1>Use Case: <br> <a href="http://r-addict.com/2016/08/25/Extending-Sparklyr.html">Extending sparklyr to Compute Cost for K-means</a></h1></section><section id="preparing-spark-ml-algorithm" class="slide level2">
 <h1>Preparing Spark ML Algorithm</h1>
-<p><small> The basic example on how sparklyr invokes Scala code from Spark ML will be presented on K-means algorithm. If you check the code of <code>sparklyr::ml_kmeans()</code> function you will see that for input <code>tbl_spark</code> object, named x and character vector containing features’ names (<code>featuers</code>)</p>
+<p><small> The basic example on how sparklyr invokes Scala code from Spark ML will be presented on K-means algorithm. If you check the code of <code>sparklyr::ml_kmeans()</code> function you will see that for input <code>tbl_spark</code> object, named x and character vector containing features’ names (<code>featuers</code>) </small></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">envir &lt;-<span class="st"> </span><span class="kw">new.env</span>(<span class="dt">parent =</span> <span class="kw">emptyenv</span>())
 df    &lt;-<span class="st"> </span><span class="kw">spark_dataframe</span>(x)
 sc    &lt;-<span class="st"> </span><span class="kw">spark_connection</span>(df)
 df    &lt;-<span class="st"> </span><span class="kw">ml_prepare_features</span>(df, features)
 tdf   &lt;-<span class="st"> </span><span class="kw">ml_prepare_dataframe</span>(df, features, <span class="dt">ml.options =</span> ml.options, <span class="dt">envir =</span> envir)</code></pre></div>
-<p>sparklyr ensures that you have proper connection to spark data frame and prepares features in convenient form and naming convention. At the end it prepares a Spark DataFrame for Spark ML routines.</p>
-<p>This is done in a new environment, so that we can store arguments for future ML algorithm and the model itself in its own environment. This is safe and clean solution. You can construct a simple model calling a Spark ML class like this</p>
+<p><small> sparklyr ensures that you have proper connection to spark data frame and prepares features in convenient form and naming convention. At the end it prepares a Spark DataFrame for Spark ML routines.</p>
+<p>You can construct a simple model calling a Spark ML class like this </small></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">envir$model &lt;-<span class="st"> &quot;org.apache.spark.ml.clustering.KMeans&quot;</span>
 kmeans      &lt;-<span class="st"> </span><span class="kw">invoke_new</span>(sc, envir$model)</code></pre></div>
-<p>which invokes new object of class KMeans on which we can invoke parameters setters to change default parameters. </small></p>
 </section><section id="invoking-spark-ml-algorithm" class="slide level2">
 <h1>Invoking Spark ML Algorithm</h1>
 <p>…which invokes new object of class KMeans on which we can invoke parameters setters to change default parameters.</p>
@@ -860,17 +859,17 @@ kmeans      &lt;-<span class="st"> </span><span class="kw">invoke_new</span>(sc,
 <span class="co"># features where set in ml_prepare_dataframe</span></code></pre></div>
 </section><section id="fitting-spark-ml-algorithm" class="slide level2">
 <h1>Fitting Spark ML Algorithm</h1>
-<p>For an existing object of <code>KMeans</code> class we can invoke its method called <code>fit</code> that is responsible for starting the K-means clustering algorithm</p>
+<p><small> For an existing object of <code>KMeans</code> class we can invoke its method called <code>fit</code> that is responsible <br>for starting the K-means clustering algorithm </small></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fit &lt;-<span class="st"> </span>model %&gt;%<span class="st"> </span><span class="kw">invoke</span>(<span class="st">&quot;fit&quot;</span>, tdf)
 <span class="co"># reminder: </span>
 <span class="co"># tdf   &lt;- ml_prepare_dataframe(df, features, ml.options = ml.options, envir = envir)</span></code></pre></div>
-<p>which returns new object on which we can compute, e.g centers of outputted clustering</p>
+<p><small> which returns new object on which we can compute/extract, e.g centers of outputted clustering </small></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">kmmCenters &lt;-<span class="st"> </span><span class="kw">invoke</span>(fit, <span class="st">&quot;clusterCenters&quot;</span>)</code></pre></div>
-<p>or the Within Set Sum of Squared Errors (called Cost)</p>
+<p><small> or the Within Set Sum of Squared Errors (called Cost) </small></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">kmmCost &lt;-<span class="st"> </span><span class="kw">invoke</span>(fit, <span class="st">&quot;computeCost&quot;</span>, tdf)</code></pre></div>
-<p>which is my small contribution <a href="https://github.com/rstudio/sparklyr/pull/173">#173</a></p>
-</section><section id="or-use-spaklyr" class="slide level2">
-<h1>or use spaklyr</h1>
+<p><small> which is my small contribution <a href="https://github.com/rstudio/sparklyr/pull/173">#173</a> </small></p>
+</section><section id="or-use-spaklyrml_kmeans" class="slide level2">
+<h1>or use spaklyr::ml_kmeans</h1>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">iris_tbl %&gt;%
 <span class="st">   </span><span class="kw">select</span>(Petal_Width, Petal_Length) %&gt;%
 <span class="st">   </span><span class="kw">ml_kmeans</span>(<span class="dt">centers =</span> <span class="dv">3</span>, <span class="dt">compute.cost =</span> <span class="ot">TRUE</span>) %&gt;%
@@ -886,7 +885,7 @@ Cluster centers:
 Within Set Sum of Squared Errors =<span class="st">  </span><span class="fl">31.41289</span></code></pre></div>
 <p><small></p>
 <p>All that can be better understood if we’ll have a look on <a href="https://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.ml.clustering.KMeans">Spark ML documentation for KMeans</a> . Be carefull <a href="https://github.com/rstudio/sparklyr/issues/178#issuecomment-240472368">not to confuse with Spark MLlib</a> where methods and parameters have different names than those in Spark ML.</p>
-<p>This enabled me to provide simple update for <code>ml_kmeans()</code> (<a href="https://github.com/rstudio/sparklyr/pull/179">#179</a>) so that we can specify <code>tol</code> (tolerance) parameter in <code>ml_kmeans()</code> to support tolerance of convergence.</p>
+<p>The documentation enabled me to provide simple update for <code>ml_kmeans()</code> (<a href="https://github.com/rstudio/sparklyr/pull/179">#179</a>) so that we can specify <code>tol</code> (tolerance) parameter in <code>ml_kmeans()</code> to support tolerance of convergence.</p>
 <p></small></p>
 </section></section>
 <section><section id="questions" class="titleslide slide level1"><h1>Questions?</h1></section><section id="thank-you-for-your-attention" class="slide level2">
