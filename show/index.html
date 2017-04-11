@@ -456,7 +456,7 @@ document.getElementsByTagName('head')[0].appendChild(style);
 
 <section>
     <h1 class="title"><br><small> <a href="https://github.com/rstudio/sparklyr">sparklyr</a>: R interface to <a href="http://spark.apache.org/">Apache Spark</a> machine learning algorithms with <a href="https://github.com/tidyverse/dplyr">dplyr</a> back-end </small></h1>
-  <h1 class="subtitle"><small> <br><a href="http://r-addict.com/About.html">Marcin Kosiński</a> </small></h1>
+  <h1 class="subtitle"><small> <br><a href="http://r-addict.com/About.html">Marcin Kosinski</a> </small></h1>
     <h2 class="author"><small><a href='https://r-addict.com'><i class='fa fa-comment'></i></a>  <a href='https://stackoverflow.com/users/3857701'><i class='fa fa-stack-overflow'></i></a>  <a href='https://github.com/MarcinKosinski'><i class='fa fa-github'></i></a>  <a href='mailto:m.p.kosinski@gmail.com'><i class='fa fa-envelope-o'></i></a>  </small><br></h2>
     <h3 class="date">April 11, 2017 <br> <a href="https://www.meetup.com/Data-Science-Warsaw/events/238737897/">Data Science Warsaw 25</a></h3>
 </section>
@@ -470,14 +470,112 @@ document.getElementsByTagName('head')[0].appendChild(style);
 <h1>sparklyr = integRation</h1>
 <ul>
 <li><a href="http://spark.apache.org/">Apache Spark</a></li>
+<li><a href="http://spark.apache.org/mllib/">Spark MLlib</a> (machine learning library)</li>
 <li><a href="https://cran.r-project.org/">R (data science) language</a></li>
 <li><a href="https://github.com/rstudio/sparkapi">sparkapi</a> R package</li>
 <li><a href="https://github.com/tidyverse/dplyr">dplyr</a> R package</li>
-<li><a href="http://spark.apache.org/mllib/">Spark MLlib</a> (machine learning library)</li>
 <li><a href="http://spark.rstudio.com">sparklyr</a>: dplyr back-end for Spark MLlib executed from R via sparkapi</li>
 </ul>
 </section></section>
-<section><section id="thank-you-for-your-attention-questions" class="titleslide slide level1"><h1>Thank you for your attention Questions?</h1></section></section>
+<section><section id="apache-spark" class="titleslide slide level1"><h1>Apache Spark</h1></section><section id="spark---highlights" class="slide level2">
+<h1>Spark - highlights</h1>
+<p><a href="http://spark.apache.org/">spark.apache.org</a></p>
+<blockquote>
+<p>Apache Spark™ is a fast and general engine for large-scale data processing.</p>
+</blockquote>
+<blockquote>
+<p>Write applications quickly in Java, Scala, Python, R.</p>
+</blockquote>
+<pre><code>./bin/spark-shell --master local[N] # N - threads  / local, standalone
+./bin/pyspark     --master mesos://host:5050  # Mesos cluster
+./bin/sparkR      --master --master yarn --deploy-mode client</code></pre>
+<p><small> Unlike Spark <a href="http://spark.apache.org/docs/latest/spark-standalone.html">standalone</a> and <a href="http://spark.apache.org/docs/latest/running-on-mesos.html">Mesos</a> modes, in which the master’s address is specified in the <code>--master</code> parameter, in YARN mode the ResourceManager’s address is picked up from the Hadoop configuration. <br> Thus, the <code>--master</code> parameter is yarn. </small></p>
+</section><section id="spark---generality" class="slide level2">
+<h1>Spark - Generality</h1>
+<p><img src='spark1.PNG'></p>
+<p><small> Spark powers a stack of libraries including SQL and DataFrames, MLlib for machine learning, GraphX, and Spark Streaming. You can combine these libraries seamlessly in the same application. </small></p>
+<p>Modules built on Spark:</p>
+<ul>
+<li><a href="http://spark.apache.org/docs/latest/streaming-programming-guide.html">Spark Streaming</a>: processing real-time data streams</li>
+<li><a href="http://spark.apache.org/docs/latest/sql-programming-guide.html">Spark SQL, Datasets, and DataFrames</a>: support for structured data and relational queries</li>
+<li><a href="http://spark.apache.org/docs/latest/ml-guide.html">MLlib</a>: built-in machine learning library</li>
+<li><a href="http://spark.apache.org/docs/latest/graphx-programming-guide.html">GraphX</a>: Spark’s new API for graph processing</li>
+</ul>
+</section><section id="spark---runs-everywhere" class="slide level2">
+<h1>Spark - Runs Everywhere</h1>
+<blockquote>
+<p>You can run Spark using its <a href="http://spark.apache.org/docs/latest/spark-standalone.html">standalone cluster mode</a>, on <a href="http://spark.apache.org/docs/latest/ec2-scripts.html">EC2</a>, on <a href="http://hadoop.apache.org/docs/current/hadoop-yarn/hadoop-yarn-site/index.html">Hadoop YARN</a>, or on <a href="http://mesos.apache.org/">Apache Mesos</a>. Access data in <a href="http://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html">HDFS</a>, <a href="http://cassandra.apache.org/">Cassandra</a>, <a href="http://hbase.apache.org/">HBase</a>, <a href="http://hive.apache.org/">Hive</a>, <a href="http://tachyon-project.org/">Tachyon</a>, and any Hadoop data source.</p>
+</blockquote>
+<p><img src='spark2.PNG'></p>
+</section><section id="spark---where-to-go-from-here" class="slide level2">
+<h1>Spark - <a href="http://spark.apache.org/docs/latest/#where-to-go-from-here">Where to Go from Here?</a></h1>
+</section></section>
+<section><section id="spark-mllib" class="titleslide slide level1"><h1>Spark MLlib</h1></section><section id="machine-learning-library-mllib-guide" class="slide level2">
+<h1>Machine Learning Library (MLlib) <a href="http://spark.apache.org/docs/latest/ml-guide.html">Guide</a></h1>
+<p><small> MLlib is Spark’s machine learning (ML) library. Its goal is to make practical machine learning scalable and easy. At a high level, it provides tools such as:</p>
+<ul>
+<li>ML Algorithms: common learning algorithms such as classification, regression, clustering, and collaborative filtering</li>
+<li>Featurization: feature extraction, transformation, dimensionality reduction, and selection</li>
+<li>Pipelines: tools for constructing, evaluating, and tuning ML Pipelines</li>
+<li>Persistence: saving and load algorithms, models, and Pipelines</li>
+<li>Utilities: linear algebra, statistics, data handling, etc.</li>
+</ul>
+<p></small></p>
+</section><section id="mllib-can-be-accessed-with" class="slide level2">
+<h1>MLlib can be accessed with</h1>
+<p><img src='mllib1.PNG'> <img src='mllib2.PNG'></p>
+</section><section id="where-is-r" class="slide level2">
+<h1>Where is R?</h1>
+<p><a href="http://spark.apache.org/docs/latest/sparkr.html">SparkR (R on Spark)</a> - <a href="http://spark.apache.org/docs/latest/sparkr.html#machine-learning">Machine Learning</a></p>
+<p><small> SparkR supports the following machine learning algorithms currently:</p>
+<ul>
+<li><a href="http://spark.apache.org/docs/latest/api/R/spark.glm.html">spark.glm</a> or <a href="http://spark.apache.org/docs/latest/api/R/glm.html">glm</a>: Generalized Linear Model</li>
+<li><a href="http://spark.apache.org/docs/latest/api/R/spark.survreg.html">spark.survreg</a>: Accelerated Failure Time (AFT) Survival Regression Model</li>
+<li><a href="http://spark.apache.org/docs/latest/api/R/spark.naiveBayes.html">spark.naiveBayes</a>: Naive Bayes Model</li>
+<li><a href="http://spark.apache.org/docs/latest/api/R/spark.kmeans.html">spark.kmeans</a>: K-Means Model</li>
+<li><a href="http://spark.apache.org/docs/latest/api/R/spark.logit.html">spark.logit</a>: Logistic Regression Model</li>
+<li><a href="http://spark.apache.org/docs/latest/api/R/spark.isoreg.html">spark.isoreg</a>: Isotonic Regression Model</li>
+<li><a href="http://spark.apache.org/docs/latest/api/R/spark.gaussianMixture.html">spark.gaussianMixture</a>: Gaussian Mixture Model</li>
+<li><a href="http://spark.apache.org/docs/latest/api/R/spark.lda.html">spark.lda</a>: Latent Dirichlet Allocation (LDA) Model</li>
+<li><a href="http://spark.apache.org/docs/latest/api/R/spark.mlp.html">spark.mlp</a>: Multilayer Perceptron Classification Model</li>
+<li><a href="http://spark.apache.org/docs/latest/api/R/spark.gbt.html">spark.gbt</a>: Gradient Boosted Tree Model for Regression and Classification</li>
+<li><a href="http://spark.apache.org/docs/latest/api/R/spark.randomForest.html">spark.randomForest</a>: Random Forest Model for Regression and Classification</li>
+<li><a href="http://spark.apache.org/docs/latest/api/R/spark.als.html">spark.als</a>: Alternating Least Squares (ALS) matrix factorization Model</li>
+<li><a href="http://spark.apache.org/docs/latest/api/R/spark.kstest.html">spark.kstest</a>: Kolmogorov-Smirnov Test</li>
+</ul>
+<blockquote>
+<p>SparkR is not sparklyr. In the time I learned sparklyr, the SparkR provided only <code>glm</code>. </small></p>
+</blockquote>
+</section></section>
+<section><section id="r" class="titleslide slide level1"><h1>R</h1></section><section id="r-1" class="slide level2">
+<h1>R</h1>
+<blockquote>
+<p>An open source programming language and software environment for statistical computing and graphics.</p>
+</blockquote>
+<p>Language of Data Science</p>
+<p>Key tool in the statistician toolbox.</p>
+<ul>
+<li><a href="https://user2017.brussels/">useR ! 2017 04-07.07.2017</a></li>
+<li><a href="http://whyr.pl/">Why R? 2017 27-29.09.2017</a></li>
+</ul>
+</section><section id="learn-r" class="slide level2">
+<h1>Learn R</h1>
+<ul>
+<li><a href="https://www.meetup.com/Spotkania-Entuzjastow-R-Warsaw-R-Users-Group-Meetup/">Warsaw R Enthusiast Group</a></li>
+<li><a href="http://www.pogromcydanych.icm.edu.pl/">Data Crunchers / Pogromcy Danych</a> Massive Open Online Course</li>
+<li><a href="http://adv-r.had.co.nz/">Advanced R</a> by Hadley Wickham</li>
+<li><a href="http://r-pkgs.had.co.nz/">R packages</a> by Hadley Wickham</li>
+<li><a href="https://www.crcpress.com/Extending-R/Chambers/p/book/9781498775717">Extending R</a> by John M. Chambers</li>
+<li><a href="https://statweb.stanford.edu/~tibs/ElemStatLearn/">The Elements of Statistical Learning</a> by T. Hastie, R. Tibshiriani, J. Friedman</li>
+</ul>
+</section></section>
+<section><section id="dplyr" class="titleslide slide level1"><h1>dplyr</h1></section><section id="dplyr-a-grammar-of-data-manipulation" class="slide level2">
+<h1><a href="https://cran.r-project.org/web/packages/dplyr/index.html">dplyr</a>: <br> A Grammar of Data Manipulation</h1>
+<ul>
+<li>1 R Top Package w/ <a href="https://www.rdocumentation.org/">113,363 monthly distinct downloads</a></li>
+</ul>
+<p><img src="https://cranlogs.r-pkg.org/badges/grand-total/dplyr"></p>
+</section></section>
     </div>
   </div>
 
